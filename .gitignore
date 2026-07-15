@@ -1,0 +1,6 @@
+node_modules/
+.env
+.wrangler/
+posts.json
+*.log
+.DS_Store

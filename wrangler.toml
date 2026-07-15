@@ -1,0 +1,26 @@
+name = "united-mizo-news"
+main = "src/index.js"
+compatibility_date = "2024-09-23"
+compatibility_flags = [ "nodejs_compat" ]
+
+[assets]
+directory = "./public"
+
+[vars]
+# GEMINI_API_KEY is set via wrangler secret put GEMINI_API_KEY
+
+[[kv_namespaces]]
+binding = "NEWS_KV"
+id = "16d55653d80c4638ab3fa56f93d8eef9"
+
+# Run feed fetch every 2 minutes
+[triggers]
+crons = ["*/2 * * * *"]
+
+[[routes]]
+pattern = "mizoutd.com"
+custom_domain = true
+
+[[routes]]
+pattern = "www.mizoutd.com"
+custom_domain = true

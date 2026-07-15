@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>United Mizo Fans - Latest Manchester United News in Mizo</title>
+    <link rel="icon" type="image/x-icon" href="https://www.manutd.com/favicon.ico">
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background glow elements for rich aesthetics -->
+    <div class="glow glow-1"></div>
+    <div class="glow glow-2"></div>
+
+    <header>
+        <div class="header-container">
+            <div class="logo-area">
+                <div class="logo-shield">
+                    <i class="fa-solid fa-fire-flame-curved devil-icon"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>UNITED <span>MIZO FANS</span></h1>
+                    <p class="subtitle">Manchester United Chanchin Thar Mizo Tawngin</p>
+                </div>
+            </div>
+            
+            <div class="header-controls">
+                <button id="refresh-btn" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate"></i> <span>Refresh Feed</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Live Status Bar -->
+        <section class="status-bar">
+            <div class="live-indicator">
+                <span class="dot animate-pulse"></span>
+                <span>LIVE FEED</span>
+            </div>
+            <div class="update-time" id="last-updated">
+                Loading...
+            </div>
+        </section>
+
+        <!-- Loading Skeleton -->
+        <section id="loading-container" class="news-grid">
+            <!-- Skeleton Card 1 -->
+            <div class="card skeleton">
+                <div class="skeleton-img"></div>
+                <div class="card-content">
+                    <div class="skeleton-line line-sm"></div>
+                    <div class="skeleton-line line-lg"></div>
+                    <div class="skeleton-line line-md"></div>
+                    <div class="skeleton-line line-sm"></div>
+                </div>
+            </div>
+            <!-- Skeleton Card 2 -->
+            <div class="card skeleton">
+                <div class="skeleton-img"></div>
+                <div class="card-content">
+                    <div class="skeleton-line line-sm"></div>
+                    <div class="skeleton-line line-lg"></div>
+                    <div class="skeleton-line line-md"></div>
+                    <div class="skeleton-line line-sm"></div>
+                </div>
+            </div>
+            <!-- Skeleton Card 3 -->
+            <div class="card skeleton">
+                <div class="skeleton-img"></div>
+                <div class="card-content">
+                    <div class="skeleton-line line-sm"></div>
+                    <div class="skeleton-line line-lg"></div>
+                    <div class="skeleton-line line-md"></div>
+                    <div class="skeleton-line line-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Empty State -->
+        <section id="empty-state" class="empty-state hidden">
+            <i class="fa-solid fa-circle-exclamation empty-icon"></i>
+            <h2>Chanchin thar a awm rih lo tlat</h2>
+            <p>Gemini API Key kha i `.env` ah i dah tawh em le? Emaw feed a rawn lut hrih lo a ni ang.</p>
+            <button id="retry-btn" class="btn btn-primary">Refresh Leh Chhin Rawh</button>
+        </section>
+
+        <!-- News Grid -->
+        <section id="news-container" class="news-grid hidden">
+            <!-- News Cards will be dynamically inserted here -->
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2026 United Mizo Fans. Created for Manchester United fans in Mizoram.</p>
+            <p><a href="#" id="privacy-btn" class="footer-link">Privacy Policy</a></p>
+        </div>
+    </footer>
+
+    <!-- Article Detail Modal -->
+    <div id="article-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-source" id="modal-source">Source</span>
+                <button id="modal-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-image-container" id="modal-image-container">
+                    <img id="modal-image" src="" alt="Article Image">
+                </div>
+                <h2 class="modal-title" id="modal-title">Article Title</h2>
+                <div class="modal-meta">
+                    <span id="modal-date"><i class="fa-regular fa-clock"></i> Date</span>
+                </div>
+                <div class="modal-content" id="modal-content">
+                    <!-- Paraphrased Mizo news goes here -->
+                </div>
+                <div class="modal-credit-footer">
+                    &copy; 2026 United Mizo Fans. Created for Manchester United fans in Mizoram.
+                </div>
+            </div>
+            <!-- Footer removed to save space -->
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacy-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <span class="modal-source">Privacy Policy</span>
+                <button id="privacy-close" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body privacy-body">
+                <h2>Privacy Policy for United Mizo Fans</h2>
+                <p class="modal-meta">Last updated: July 15, 2026</p>
+                
+                <p>At United Mizo Fans, accessible from our website, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by United Mizo Fans and how we use it.</p>
+                
+                <h3>Consent</h3>
+                <p>By using our website, you hereby consent to our Privacy Policy and agree to its terms.</p>
+                
+                <h3>Information We Collect</h3>
+                <p>United Mizo Fans does not require users to register or provide any personal information to read the news. We do not collect personal identifying information (PII) from our visitors.</p>
+                
+                <h3>Log Files</h3>
+                <p>Like many other websites, we collect standard log files when visitors use our services. This is a standard procedure for hosting companies and a part of hosting services' analytics. The information inside the log files includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and number of clicks. These are not linked to any information that is personally identifiable.</p>
+                
+                <h3>Google AdSense and Cookies</h3>
+                <p>Google is one of the third-party vendors on our site. It uses cookies, known as DART cookies, to serve ads to our site visitors based upon their visit to our site and other sites on the internet. Visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at the following URL: <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer">https://policies.google.com/technologies/ads</a></p>
+                
+                <h3>Third Party Privacy Policies</h3>
+                <p>United Mizo Fans' Privacy Policy does not apply to other advertisers or websites. Thus, we are advising you to consult the respective Privacy Policies of these third-party ad servers for more detailed information. It may include their practices and instructions about how to opt-out of certain options.</p>
+                
+                <h3>Children's Information</h3>
+                <p>Another part of our priority is adding protection for children while using the internet. We encourage parents and guardians to observe, participate in, and/or monitor and guide their online activity. United Mizo Fans does not knowingly collect any Personal Identifiable Information from children under the age of 13.</p>
+                
+                <div class="modal-credit-footer">
+                    &copy; 2026 United Mizo Fans. Created for Manchester United fans in Mizoram.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
