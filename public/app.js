@@ -22,6 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     let posts = [];
     let isMizo = true; // Default to Mizo language
 
+    // Deterministic hash function to generate short unique IDs for posts based on their title
+    function generatePostId(title) {
+        let hash = 0;
+        const str = title || '';
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash).toString(36);
+    }
+
     // Fetch news from the API
     async function fetchNews(forceRefresh = false) {
         showLoading(true);
@@ -40,6 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
             
             renderNews();
             updateLastUpdated();
+
+            // Handle auto-opening a post if "?p=" is present in the URL on initial load
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetPostId = urlParams.get('p');
+            if (targetPostId) {
+                const targetIndex = posts.findIndex(p => generatePostId(p.title) === targetPostId);
+                if (targetIndex !== -1) {
+                    openArticleModal(targetIndex);
+                }
+            }
         } catch (error) {
             console.error('Error fetching news:', error);
             showErrorState();
@@ -201,9 +222,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.classList.add('modal-open');
         document.body.classList.add('modal-open');
 
-        // Push state for native back swipe gesture support
-        if (window.location.hash !== '#article') {
-            history.pushState({ modal: 'article' }, '', '#article');
+        // Push state for native back swipe gesture support and custom previews
+        const postId = generatePostId(post.title);
+        if (window.location.search !== `?p=${postId}`) {
+            history.pushState({ modal: 'article', postId: postId }, '', `?p=${postId}`);
         }
     }
 
@@ -211,7 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
         articleModal.classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
-        if (window.location.hash === '#article') {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('p')) {
             history.back();
         }
     }
@@ -288,15 +311,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for browser navigation / native swipe-back gestures
     window.addEventListener('popstate', () => {
-        if (window.location.hash !== '#article') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pId = urlParams.get('p');
+        
+        if (!pId) {
             articleModal.classList.add('hidden');
         }
         if (window.location.hash !== '#privacy') {
             privacyModal.classList.add('hidden');
         }
         
-        // Remove or restore scroll locks depending on hash state
-        if (window.location.hash === '#article' || window.location.hash === '#privacy') {
+        // Remove or restore scroll locks depending on query / hash state
+        if (pId || window.location.hash === '#privacy') {
             document.documentElement.classList.add('modal-open');
             document.body.classList.add('modal-open');
         } else {

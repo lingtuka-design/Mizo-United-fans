@@ -5,6 +5,7 @@ compatibility_flags = [ "nodejs_compat" ]
 
 [assets]
 directory = "./public"
+binding = "ASSETS"
 
 [vars]
 # GEMINI_API_KEY is set via wrangler secret put GEMINI_API_KEY

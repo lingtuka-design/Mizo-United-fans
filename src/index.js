@@ -310,6 +310,68 @@ app.get('/api/refresh', async (c) => {
   return c.json({ success: true, count: posts.length, posts });
 });
 
+// Helper: same hash function used in app.js to match post IDs
+function generatePostId(title) {
+  let hash = 0;
+  const str = title || '';
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+// Dynamic OG tag handler — serves custom HTML for social media crawlers
+// so that shared article links show the correct title, image, and description
+app.get('/', async (c) => {
+  const url = new URL(c.req.url);
+  const postId = url.searchParams.get('p');
+  const ua = c.req.header('User-Agent') || '';
+
+  // Detect social media bots by User-Agent
+  const isSocialBot = /facebookexternalhit|Twitterbot|WhatsApp|LinkedInBot|Slackbot|TelegramBot|Discordbot|vkShare|W3C_Validator|bot|crawl|spider/i.test(ua);
+
+  // Only intercept bot requests that have a ?p= post ID
+  if (postId && isSocialBot) {
+    const cached = await c.env.NEWS_KV.get('posts');
+    const posts = cached ? JSON.parse(cached) : [];
+    const post = posts.find(p => generatePostId(p.title) === postId);
+
+    if (post) {
+      const title = post.mizoTitle || post.title;
+      const description = cleanText(post.mizoSummary || post.description).slice(0, 200);
+      const image = post.image || 'https://mizoutd.com/united_mizo_fans_og_image.jpg';
+      const postUrl = `https://mizoutd.com/?p=${postId}`;
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="${postUrl}">
+  <meta property="og:title" content="${title.replace(/"/g, '&quot;')}">
+  <meta property="og:description" content="${description.replace(/"/g, '&quot;')}">
+  <meta property="og:image" content="${image}">
+  <meta property="og:site_name" content="United Mizo Fans">
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="${title.replace(/"/g, '&quot;')}">
+  <meta property="twitter:description" content="${description.replace(/"/g, '&quot;')}">
+  <meta property="twitter:image" content="${image}">
+  <meta http-equiv="refresh" content="0;url=${postUrl}">
+  <title>${title}</title>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>`;
+      return c.html(html);
+    }
+  }
+
+  // For regular users and bots without ?p=, serve the static index.html from assets
+  return c.env.ASSETS.fetch(c.req.raw);
+});
+
 // Cloudflare Workers entrypoint definition
 export default {
   fetch: app.fetch,
