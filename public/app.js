@@ -253,6 +253,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Modal Close Listeners
     modalClose.addEventListener('click', closeArticleModal);
+
+    // "United Mizo Fans" home button inside modal — close and go home
+    const modalHomeBtn = document.getElementById('modal-home-btn');
+    if (modalHomeBtn) {
+        modalHomeBtn.addEventListener('click', closeArticleModal);
+    }
     
     // Close when clicking overlay backdrop
     articleModal.addEventListener('click', (e) => {
