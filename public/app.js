@@ -98,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (post.image) {
                 mediaHTML = `
                     <div class="card-media">
-                        <span class="card-badge">${post.source}</span>
                         <img src="${post.image}" alt="News Image" class="card-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="card-placeholder" style="display:none;">
                             <i class="fa-solid fa-fire-flame-curved placeholder-logo"></i>
@@ -109,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 mediaHTML = `
                     <div class="card-media">
-                        <span class="card-badge">${post.source}</span>
                         <div class="card-placeholder">
                             <i class="fa-solid fa-fire-flame-curved placeholder-logo"></i>
                             <span class="placeholder-text">United News</span>

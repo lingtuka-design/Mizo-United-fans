@@ -26,13 +26,26 @@ async function scrapeOgImage(url) {
     });
     if (!response.ok) return null;
     const html = await response.text();
+
+    // Try og:image first (most reliable)
     const ogImageRegex = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i;
     const ogImageRegexAlt = /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i;
     let match = html.match(ogImageRegex);
-    if (!match) {
-      match = html.match(ogImageRegexAlt);
+    if (!match) match = html.match(ogImageRegexAlt);
+    if (match && match[1]) return match[1];
+
+    // Fallback: find first meaningful <img> in article body (skip icons/logos that are tiny)
+    const imgRegex = /<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["'][^>]*(?:width=["'](\d+)["'])?/gi;
+    let imgMatch;
+    while ((imgMatch = imgRegex.exec(html)) !== null) {
+      const src = imgMatch[1];
+      // Skip very small images (icons/avatars), gravatar, and data URIs
+      if (src.startsWith('data:')) continue;
+      if (src.includes('gravatar') || src.includes('avatar') || src.includes('logo') || src.includes('icon')) continue;
+      if (src.startsWith('http')) return src;
     }
-    return match ? match[1] : null;
+
+    return null;
   } catch (error) {
     console.error(`Failed to scrape image for ${url}:`, error.message);
     return null;
