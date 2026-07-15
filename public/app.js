@@ -200,12 +200,20 @@ document.addEventListener('DOMContentLoaded', () => {
         articleModal.classList.remove('hidden');
         document.documentElement.classList.add('modal-open');
         document.body.classList.add('modal-open');
+
+        // Push state for native back swipe gesture support
+        if (window.location.hash !== '#article') {
+            history.pushState({ modal: 'article' }, '', '#article');
+        }
     }
 
     function closeArticleModal() {
         articleModal.classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
+        if (window.location.hash === '#article') {
+            history.back();
+        }
     }
 
     // Update last updated status bar
@@ -247,12 +255,18 @@ document.addEventListener('DOMContentLoaded', () => {
         privacyModal.classList.remove('hidden');
         document.documentElement.classList.add('modal-open');
         document.body.classList.add('modal-open');
+        if (window.location.hash !== '#privacy') {
+            history.pushState({ modal: 'privacy' }, '', '#privacy');
+        }
     }
 
     function closePrivacyModal() {
         privacyModal.classList.add('hidden');
         document.documentElement.classList.remove('modal-open');
         document.body.classList.remove('modal-open');
+        if (window.location.hash === '#privacy') {
+            history.back();
+        }
     }
 
     if (privacyBtn) {
@@ -269,6 +283,25 @@ document.addEventListener('DOMContentLoaded', () => {
     privacyModal.addEventListener('click', (e) => {
         if (e.target === privacyModal) {
             closePrivacyModal();
+        }
+    });
+
+    // Listen for browser navigation / native swipe-back gestures
+    window.addEventListener('popstate', () => {
+        if (window.location.hash !== '#article') {
+            articleModal.classList.add('hidden');
+        }
+        if (window.location.hash !== '#privacy') {
+            privacyModal.classList.add('hidden');
+        }
+        
+        // Remove or restore scroll locks depending on hash state
+        if (window.location.hash === '#article' || window.location.hash === '#privacy') {
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        } else {
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
         }
     });
 

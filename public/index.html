@@ -108,14 +108,15 @@
     <!-- Article Detail Modal -->
     <div id="article-modal" class="modal-overlay hidden">
         <div class="modal-card">
-            <div class="modal-header">
-                <span class="modal-source" id="modal-source">Source</span>
-                <button id="modal-close" class="modal-close-btn">&times;</button>
-            </div>
+            <!-- Floating Close Button -->
+            <button id="modal-close" class="modal-close-btn">&times;</button>
+            
             <div class="modal-body">
                 <div class="modal-image-container" id="modal-image-container">
                     <img id="modal-image" src="" alt="Article Image">
                 </div>
+                <!-- Source Tag inside body -->
+                <span class="modal-source-tag" id="modal-source">Source</span>
                 <h2 class="modal-title" id="modal-title">Article Title</h2>
                 <div class="modal-meta">
                     <span id="modal-date"><i class="fa-regular fa-clock"></i> Date</span>
@@ -127,17 +128,14 @@
                     &copy; 2026 United Mizo Fans. Created for Manchester United fans in Mizoram.
                 </div>
             </div>
-            <!-- Footer removed to save space -->
         </div>
     </div>
 
     <!-- Privacy Policy Modal -->
     <div id="privacy-modal" class="modal-overlay hidden">
         <div class="modal-card">
-            <div class="modal-header">
-                <span class="modal-source">Privacy Policy</span>
-                <button id="privacy-close" class="modal-close-btn">&times;</button>
-            </div>
+            <!-- Floating Close Button -->
+            <button id="privacy-close" class="modal-close-btn">&times;</button>
             <div class="modal-body privacy-body">
                 <h2>Privacy Policy for United Mizo Fans</h2>
                 <p class="modal-meta">Last updated: July 15, 2026</p>
