@@ -19,37 +19,62 @@ function cleanText(text) {
 // Scrape Open Graph Image from article page
 async function scrapeOgImage(url) {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000); // 4 seconds timeout
+
     const response = await fetch(url, {
+      signal: controller.signal,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5'
       }
     });
-    if (!response.ok) return null;
-    const html = await response.text();
+    clearTimeout(timeoutId);
+    console.log(`Scrape image response for ${url}: status=${response.status} ok=${response.ok}`);
+    
+    if (response.ok) {
+      const html = await response.text();
 
-    // Try og:image first (most reliable)
-    const ogImageRegex = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i;
-    const ogImageRegexAlt = /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i;
-    let match = html.match(ogImageRegex);
-    if (!match) match = html.match(ogImageRegexAlt);
-    if (match && match[1]) return match[1];
+      // Try og:image first (most reliable)
+      const ogImageRegex = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i;
+      const ogImageRegexAlt = /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i;
+      let match = html.match(ogImageRegex);
+      if (!match) match = html.match(ogImageRegexAlt);
+      if (match && match[1]) return match[1];
 
-    // Fallback: find first meaningful <img> in article body (skip icons/logos that are tiny)
-    const imgRegex = /<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["'][^>]*(?:width=["'](\d+)["'])?/gi;
-    let imgMatch;
-    while ((imgMatch = imgRegex.exec(html)) !== null) {
-      const src = imgMatch[1];
-      // Skip very small images (icons/avatars), gravatar, and data URIs
-      if (src.startsWith('data:')) continue;
-      if (src.includes('gravatar') || src.includes('avatar') || src.includes('logo') || src.includes('icon')) continue;
-      if (src.startsWith('http')) return src;
+      // Fallback: find first meaningful <img> in article body (skip icons/logos that are tiny)
+      const imgRegex = /<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["'][^>]*(?:width=["'](\d+)["'])?/gi;
+      let imgMatch;
+      while ((imgMatch = imgRegex.exec(html)) !== null) {
+        const src = imgMatch[1];
+        // Skip very small images (icons/avatars), gravatar, and data URIs
+        if (src.startsWith('data:')) continue;
+        if (src.includes('gravatar') || src.includes('avatar') || src.includes('logo') || src.includes('icon')) continue;
+        if (src.startsWith('http')) return src;
+      }
     }
-
-    return null;
   } catch (error) {
-    console.error(`Failed to scrape image for ${url}:`, error.message);
-    return null;
+    console.error(`Failed to scrape image directly for ${url}:`, error.message);
   }
+
+  // Fallback to Microlink API if direct fetch failed/blocked (e.g. Cloudflare WAF block)
+  try {
+    console.log(`Direct fetch failed/blocked for ${url}. Trying Microlink API fallback...`);
+    const microlinkUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}`;
+    const res = await fetch(microlinkUrl);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.status === 'success' && json.data && json.data.image && json.data.image.url) {
+        console.log(`Microlink successfully resolved image: ${json.data.image.url}`);
+        return json.data.image.url;
+      }
+    }
+  } catch (err) {
+    console.error(`Microlink fallback failed for ${url}:`, err.message);
+  }
+
+  return null;
 }
 
 // Resolve Google News article redirects using a quick DuckDuckGo HTML search
@@ -135,7 +160,7 @@ Do not wrap the response in markdown blocks or backticks. Return raw JSON only.
 Headline: ${title}
 Summary: ${cleanText(description)}`;
 
-  const model = ai.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
+  const model = ai.getGenerativeModel({ model: 'gemini-1.5-pro' });
   const response = await model.generateContent(prompt);
   let text = response.response.text().trim();
   if (text.startsWith('```')) {
@@ -181,7 +206,7 @@ Format your response as a valid JSON array of numbers, for example: [0, 2, 5]
 Do not wrap your response in markdown formatting or backticks. Return raw JSON only.`;
 
   const ai = new GoogleGenerativeAI(apiKey);
-  const model = ai.getGenerativeModel({ model: 'gemini-3.1-flash-lite' });
+  const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const response = await model.generateContent(prompt);
   let text = response.response.text().trim();
   if (text.startsWith('```')) {
@@ -291,7 +316,28 @@ async function fetchAndTranslateFeeds(env) {
     }
   }
 
-  if (newPosts.length > 0) {
+  // Re-scrape images for existing cached posts that lack an image
+  // Re-scrape images for existing cached posts that lack an image
+  let cacheUpdated = false;
+  for (const post of cachedPosts) {
+    if (!post.image) {
+      try {
+        console.log(`Re-scraping missing image for cached post: "${post.title}"`);
+        const resolvedImage = await scrapeOgImageForPost(post.link, post.title);
+        if (resolvedImage) {
+          post.image = resolvedImage;
+          cacheUpdated = true;
+          console.log(`Successfully resolved missing image: ${resolvedImage}`);
+          // 1-second delay to prevent hitting Microlink rate-limits in rapid loops
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      } catch (err) {
+        console.error(`Failed to re-scrape image for "${post.title}":`, err.message);
+      }
+    }
+  }
+
+  if (newPosts.length > 0 || cacheUpdated) {
     const updatedPosts = [...newPosts, ...cachedPosts];
     updatedPosts.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
     const slicePosts = updatedPosts.slice(0, 50);
